@@ -9,5 +9,8 @@ window.Game = {
     mouse: { x: 0, y: 0, isDown: false, justClicked: false },
     worldMouse: { x: 0, y: 0 }, 
     
+    // THÊM: Biến quản lý Joystick điện thoại
+    mobile: { moveX: 0, moveY: 0, aimAngle: 0, isShooting: false },
+    
     score: 0, isGameOver: false, isGameWon: false, frameCount: 0
 };
