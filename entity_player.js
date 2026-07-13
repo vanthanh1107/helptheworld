@@ -39,10 +39,27 @@ class Player {
             this.lastGrenadeTime = now;
         }
 
-        if (Game.keys.w && this.y > this.radius) this.y -= currentSpeed;
-        if (Game.keys.s && this.y < Game.mapHeight - this.radius) this.y += currentSpeed;
-        if (Game.keys.a && this.x > this.radius) this.x -= currentSpeed;
-        if (Game.keys.d && this.x < Game.mapWidth - this.radius) this.x += currentSpeed;
+        // TÍNH TOÁN DI CHUYỂN MỚI (Hỗ trợ PC + Mobile)
+        let moveX = 0, moveY = 0;
+        if (Game.keys.a) moveX = -1; if (Game.keys.d) moveX = 1;
+        if (Game.keys.w) moveY = -1; if (Game.keys.s) moveY = 1;
+
+        // Nếu đang dùng Joystick thì ưu tiên Joystick
+        if (Game.mobile && (Game.mobile.moveX !== 0 || Game.mobile.moveY !== 0)) {
+            moveX = Game.mobile.moveX;
+            moveY = Game.mobile.moveY;
+        } else if (moveX !== 0 && moveY !== 0) {
+            // Sửa lỗi PC: Chạy chéo không bị nhanh lên
+            let length = Math.sqrt(moveX*moveX + moveY*moveY);
+            moveX /= length; moveY /= length;
+        }
+
+        let nextX = this.x + moveX * currentSpeed;
+        let nextY = this.y + moveY * currentSpeed;
+        
+        // Không cho rớt khỏi bản đồ
+        if (nextX > this.radius && nextX < Game.mapWidth - this.radius) this.x = nextX;
+        if (nextY > this.radius && nextY < Game.mapHeight - this.radius) this.y = nextY;
     }
     equipLoot(type) {
         if (type === 'armor' && !this.hasArmor) { this.hasArmor = true; this.maxHp += 50; this.hp = this.maxHp; } 
@@ -52,10 +69,17 @@ class Player {
         else if (type === 'key') { this.hasKey = true; }
         
         AudioSys.play('reload', 0.2); 
-        if(window.UpdateHUD) window.UpdateHUD(this); // Cập nhật giao diện an toàn
+        if(window.UpdateHUD) window.UpdateHUD(this); 
     }
     draw(ctx) {
-        let angle = Physics.getAngle(this.x, this.y, Game.worldMouse.x, Game.worldMouse.y);
+        // TÍNH TOÁN GÓC BẮN MỚI (Hỗ trợ PC + Mobile)
+        let angle = 0;
+        if (Game.mobile && Game.mobile.isShooting) {
+            angle = Game.mobile.aimAngle;
+        } else {
+            angle = Physics.getAngle(this.x, this.y, Game.worldMouse.x, Game.worldMouse.y);
+        }
+
         ctx.save(); ctx.translate(this.x, this.y); 
         if (this.isReloading) {
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-15, -35, 30, 6);
@@ -64,7 +88,6 @@ class Player {
         ctx.rotate(angle);
         if (this.isDashing) ctx.globalAlpha = 0.5;
         
-        // Vẽ nhân vật an toàn
         if (Assets.player.complete && Assets.player.naturalWidth > 0) {
             ctx.drawImage(Assets.player, -22.5, -22.5, 45, 45);
             if (this.hasArmor && Assets.armor.complete) ctx.drawImage(Assets.armor, -22.5, -22.5, 45, 45);
