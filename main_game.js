@@ -2,8 +2,6 @@ Game.trees = [];
 
 window.initZombieGame = function() {
     Game.canvas = document.getElementById('battleCanvas'); Game.ctx = Game.canvas.getContext('2d');
-    
-    // Xử lý phím & Chuột (Giữ nguyên như cũ)
     window.addEventListener('keydown', e => { if(e.key==='w'||e.key==='W') Game.keys.w=true; if(e.key==='a'||e.key==='A') Game.keys.a=true; if(e.key==='s'||e.key==='S') Game.keys.s=true; if(e.key==='d'||e.key==='D') Game.keys.d=true; });
     window.addEventListener('keyup', e => { if(e.key==='w'||e.key==='W') Game.keys.w=false; if(e.key==='a'||e.key==='A') Game.keys.a=false; if(e.key==='s'||e.key==='S') Game.keys.s=false; if(e.key==='d'||e.key==='D') Game.keys.d=false; });
     Game.canvas.addEventListener('mousemove', e => { let r = Game.canvas.getBoundingClientRect(); Game.mouse.x = e.clientX-r.left; Game.mouse.y = e.clientY-r.top; });
@@ -12,29 +10,30 @@ window.initZombieGame = function() {
     NetworkManager.initLocalPlayer();
     Game.localPlayer.x = 100; Game.localPlayer.y = 300;
 
-    // 1. TẠO RỪNG CÂY (Chướng ngại vật hình tròn xanh lá)
-    for(let i=0; i<30; i++) {
-        Game.trees.push({x: 300 + Math.random()*500, y: Math.random()*Game.mapHeight, radius: 25});
-    }
+    for(let i=0; i<30; i++) Game.trees.push({x: 300 + Math.random()*500, y: Math.random()*Game.mapHeight, radius: 25});
 
-    // 2. TẠO CÁC TÒA NHÀ & CỔNG KHÓA
     Game.walls = [
-        {x: 1000, y: 100, w: 250, h: 400}, // Bệnh viện hoang
-        {x: 1800, y: 0, w: 400, h: 200},   // Trại quân sự trên
-        {x: 1800, y: 400, w: 400, h: 200}, // Trại quân sự dưới
-        // CỔNG SẮT KHÓA (Sẽ mở khi có Key)
+        {x: 1000, y: 100, w: 250, h: 400}, {x: 1800, y: 0, w: 400, h: 200}, {x: 1800, y: 400, w: 400, h: 200},
         {x: 2600, y: 0, w: 30, h: 600, isGate: true} 
     ];
 
-    // 3. RẢI VẬT PHẨM TRÊN BẢN ĐỒ
-    Game.items.push(new GroundItem(1125, 300, 'armor')); // Giáp trong bệnh viện
-    Game.items.push(new GroundItem(1400, 500, 'machine_gun')); // Súng rơi dọc đường
-    Game.items.push(new GroundItem(2000, 300, 'key')); // CHÌA KHÓA nằm giữa trại quân sự đầy Zombie!
+    // Rải đồ (Thêm Shotgun sát vùng nguy hiểm)
+    Game.items.push(new GroundItem(1125, 300, 'armor')); 
+    Game.items.push(new GroundItem(700, 100, 'machine_gun')); // Liên thanh ngay đầu rừng
+    Game.items.push(new GroundItem(1500, 300, 'shotgun')); // SÚNG SHOTGUN (Vẽ tạm bằng icon súng cam)
+    Game.items.push(new GroundItem(2000, 300, 'key')); 
 
-    // 4. RẢI 35 ZOMBIE 
-    for(let i = 0; i < 35; i++) {
-        // Càng về cuối (gần chìa khóa và cổng), zombie càng đông
-        Game.zombies.push(new ZombieWalker(800 + Math.random() * 1800, Math.random() * Game.mapHeight));
+    // Rải Quân đoàn Zombie (Trộn lẫn các loại)
+    for(let i = 0; i < 40; i++) {
+        let zx = 600 + Math.random() * 1900; 
+        let zy = Math.random() * Game.mapHeight;
+        
+        let type = 'normal';
+        let rand = Math.random();
+        if (rand < 0.2) type = 'runner';       // 20% là Runner
+        else if (rand > 0.9) type = 'tanker';  // 10% là Tanker khổng lồ
+        
+        Game.zombies.push(new Zombie(zx, zy, type));
     }
 
     gameLoop();
@@ -48,49 +47,68 @@ function gameLoop() {
     Game.camera.y = Math.max(0, Math.min(Game.localPlayer.y - Game.height/2, Game.mapHeight - Game.height));
     Game.worldMouse.x = Game.mouse.x + Game.camera.x; Game.worldMouse.y = Game.mouse.y + Game.camera.y;
 
-    // VẼ NỀN ĐẤT
-    Game.ctx.fillStyle = '#2c3e50'; Game.ctx.fillRect(0, 0, Game.width, Game.height);
-    Game.ctx.save(); Game.ctx.translate(-Game.camera.x, -Game.camera.y);
-
-    // VẼ KHU AN TOÀN
-    Game.ctx.fillStyle = 'rgba(46, 204, 113, 0.3)'; Game.ctx.fillRect(2800, 0, 200, Game.mapHeight);
+    // NỀN BẢN ĐỒ LỚN
+    Game.ctx.fillStyle = '#1e272e'; Game.ctx.fillRect(0, 0, Game.width, Game.height);
     
-    // VẼ CÂY CỐI
+    Game.ctx.save(); 
+    FX.applyShake(Game.ctx); // ÁP DỤNG HIỆU ỨNG RUNG MÀN HÌNH
+    Game.ctx.translate(-Game.camera.x, -Game.camera.y);
+
+    // BẬT BÓNG ĐỔ TOÀN CỤC (SHADOWS) ĐỂ GAME CÓ CHIỀU SÂU
+    Game.ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    Game.ctx.shadowBlur = 10;
+    Game.ctx.shadowOffsetX = 5;
+    Game.ctx.shadowOffsetY = 5;
+
+    // Vẽ vùng an toàn
+    Game.ctx.fillStyle = 'rgba(46, 204, 113, 0.3)'; Game.ctx.fillRect(2800, 0, 200, Game.mapHeight);
+
+    // VẼ VẾT MÁU TRÊN ĐẤT (Tắt shadow cho máu)
+    Game.ctx.shadowColor = 'transparent';
+    Game.ctx.fillStyle = 'rgba(192, 57, 43, 0.5)';
+    Game.bloodStains.forEach(s => { Game.ctx.beginPath(); Game.ctx.arc(s.x, s.y, s.radius, 0, Math.PI*2); Game.ctx.fill(); });
+    
+    // Bật lại bóng đổ cho cảnh vật
+    Game.ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+
     Game.trees.forEach(t => {
         Game.ctx.fillStyle = '#27ae60'; Game.ctx.beginPath(); Game.ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); Game.ctx.fill();
         Game.ctx.fillStyle = '#2ecc71'; Game.ctx.beginPath(); Game.ctx.arc(t.x-5, t.y-5, t.radius-5, 0, Math.PI*2); Game.ctx.fill();
     });
 
-    // VẼ NHÀ & CỔNG
     for (let i = Game.walls.length - 1; i >= 0; i--) {
         let w = Game.walls[i];
-        
-        // Nếu là cổng sắt và người chơi có chìa khóa -> Xóa cổng (Mở cửa)
         if (w.isGate && Game.localPlayer.hasKey && Physics.getDistance(Game.localPlayer.x, Game.localPlayer.y, w.x, Game.localPlayer.y) < 100) {
-            Game.walls.splice(i, 1); 
-            continue; 
+            Game.walls.splice(i, 1); FX.triggerShake(10); continue; 
         }
-
-        Game.ctx.fillStyle = w.isGate ? '#f39c12' : '#444'; // Cổng màu cam, nhà màu xám
+        Game.ctx.fillStyle = w.isGate ? '#f39c12' : '#2c3e50'; 
         Game.ctx.fillRect(w.x, w.y, w.w, w.h);
-        Game.ctx.strokeStyle = '#222'; Game.ctx.lineWidth = w.isGate ? 8 : 4; Game.ctx.strokeRect(w.x, w.y, w.w, w.h);
-        
-        if(w.isGate) {
-            Game.ctx.fillStyle = '#fff'; Game.ctx.font = '20px Arial'; Game.ctx.fillText(Game.localPlayer.hasKey ? "ĐANG MỞ CỬA..." : "CẦN CHÌA KHÓA!", w.x - 70, Game.mapHeight/2);
-        }
+        Game.ctx.strokeStyle = '#000'; Game.ctx.lineWidth = w.isGate ? 8 : 2; Game.ctx.strokeRect(w.x, w.y, w.w, w.h);
     }
 
     if (Game.mouse.isDown && Game.localPlayer) { WeaponSystem.shoot(Game.localPlayer); }
 
-    // Cập nhật Vật phẩm nhặt được
     for (let i = Game.items.length - 1; i >= 0; i--) {
         let item = Game.items[i]; item.draw(Game.ctx);
         if (Physics.checkCircleCollision({x: item.x, y: item.y, radius: item.radius}, Game.localPlayer)) {
-            Game.localPlayer.equipLoot(item.type); Game.items.splice(i, 1); 
+            // Hiển thị tên súng khi nhặt
+            if(item.type === 'shotgun' || item.type === 'machine_gun') {
+                Game.localPlayer.currentWeapon = item.type;
+                document.getElementById('weapon-display').innerText = "🔫 Súng: " + WeaponSystem.stats[item.type].name;
+            } else { Game.localPlayer.equipLoot(item.type); }
+            Game.items.splice(i, 1); 
         }
     }
 
-    // Cập nhật Đạn
+    // Tắt bóng đổ để xử lý Hạt và Đạn (đỡ giật lag)
+    Game.ctx.shadowColor = 'transparent';
+
+    // Xử lý Hạt Máu (Particles)
+    for (let i = Game.particles.length - 1; i >= 0; i--) {
+        let p = Game.particles[i]; p.update(); p.draw(Game.ctx);
+        if (p.life <= 0) Game.particles.splice(i, 1);
+    }
+
     for (let i = Game.bullets.length - 1; i >= 0; i--) {
         let b = Game.bullets[i]; b.update(); b.draw(Game.ctx);
         if (b.x < 0 || b.x > Game.mapWidth || b.y < 0 || b.y > Game.mapHeight) b.isDestroyed = true;
@@ -98,16 +116,16 @@ function gameLoop() {
         if (b.isDestroyed) Game.bullets.splice(i, 1);
     }
 
-    // Cập nhật Người chơi (Kiểm tra va chạm với Nhà, Cây)
+    // Bật bóng đổ cho Nhân vật & Zombie
+    Game.ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    
     Game.players.forEach(p => {
-        p.update();
-        Game.walls.forEach(w => Physics.resolveCircleRectCollision(p, w)); 
-        Game.trees.forEach(t => Physics.resolveCircleRectCollision(p, {x: t.x-t.radius, y: t.y-t.radius, w: t.radius*2, h: t.radius*2})); // Dùng tạm hàm box cho cây
+        p.update(); Game.walls.forEach(w => Physics.resolveCircleRectCollision(p, w)); 
+        Game.trees.forEach(t => Physics.resolveCircleRectCollision(p, {x: t.x-t.radius, y: t.y-t.radius, w: t.radius*2, h: t.radius*2})); 
         p.draw(Game.ctx);
         if (p.x > 2800) Game.isGameWon = true; 
     });
 
-    // Cập nhật Zombie
     for (let i = Game.zombies.length - 1; i >= 0; i--) {
         let z = Game.zombies[i]; z.update();
         Game.walls.forEach(w => Physics.resolveCircleRectCollision(z, w));
@@ -115,6 +133,9 @@ function gameLoop() {
 
         if (Physics.checkCircleCollision(z, Game.localPlayer)) {
             Game.localPlayer.hp -= 1; document.getElementById('hp-display').innerText = "❤️ HP: " + Game.localPlayer.hp;
+            FX.triggerShake(5); // Bị cắn màn hình rung
+            FX.bloodSplatter(Game.localPlayer.x, Game.localPlayer.y); // Văng máu người chơi
+            
             if (Game.localPlayer.hp <= 100 && Game.localPlayer.hasArmor) { Game.localPlayer.hasArmor = false; document.getElementById('armor-display').style.display = 'none'; }
             if (Game.localPlayer.hp <= 0) Game.isGameOver = true;
         }
@@ -123,9 +144,11 @@ function gameLoop() {
             let b = Game.bullets[j];
             if (Physics.checkCircleCollision(z, b)) {
                 z.hp -= 1; b.isDestroyed = true; z.isAwake = true; 
+                FX.bloodSplatter(b.x, b.y); // BẮN TRÚNG LÀ VĂNG MÁU
+                
                 if (z.hp <= 0) {
-                    Game.score += 10; document.getElementById('score-display').innerText = "ĐIỂM: " + Game.score;
-                    ItemSystem.dropFromZombie(z.x, z.y); // RỚT ĐỒ KHI CHẾT
+                    Game.score += z.score; document.getElementById('score-display').innerText = "ĐIỂM: " + Game.score;
+                    ItemSystem.dropFromZombie(z.x, z.y); 
                     Game.zombies.splice(i, 1); break; 
                 }
             }
