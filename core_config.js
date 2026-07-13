@@ -4,9 +4,11 @@ window.Game = {
     camera: { x: 0, y: 0 },
     
     players: [], zombies: [], bullets: [], walls: [], crates: [], items: [],
-    particles: [], bloodStains: [], // Thêm mảng chứa máu
+    particles: [], bloodStains: [], 
+    floatingTexts: [], // THÊM MỚI: Mảng chứa số sát thương nảy lên
     
-    keys: { w: false, a: false, s: false, d: false },
+    // THÊM MỚI: Nhận diện phím Space
+    keys: { w: false, a: false, s: false, d: false, space: false },
     mouse: { x: 0, y: 0, isDown: false, justClicked: false },
     worldMouse: { x: 0, y: 0 }, 
     
