@@ -17,20 +17,19 @@ window.WeaponSystem = {
     lastShotTime: 0,
     stats: {
         'pistol': { fireRate: 350, speed: 10, color: '#ffff00', auto: false },
-        'machine_gun': { fireRate: 80, speed: 15, color: '#ff5500', auto: true } // Bắn cực nhanh
+        'machine_gun': { fireRate: 80, speed: 15, color: '#ff5500', auto: true }
     },
     shoot: function(player) {
         let now = Date.now();
         let weapon = this.stats[player.currentWeapon];
-        
-        // Súng lục yêu cầu bấm chuột liên tục (không tự động)
         if (!weapon.auto && !Game.mouse.justClicked) return;
         
         if (now - this.lastShotTime > weapon.fireRate) {
-            let angle = Physics.getAngle(player.x, player.y, Game.mouse.x, Game.mouse.y);
+            // Viên đạn nhắm thẳng vào worldMouse thay vì mouse trên màn hình
+            let angle = Physics.getAngle(player.x, player.y, Game.worldMouse.x, Game.worldMouse.y);
             Game.bullets.push(new Bullet(player.x, player.y, angle, weapon.speed, weapon.color));
             this.lastShotTime = now;
-            Game.mouse.justClicked = false; // Đã bắn xong
+            Game.mouse.justClicked = false; 
         }
     }
 };
