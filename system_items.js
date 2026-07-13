@@ -1,10 +1,7 @@
 window.Assets = {};
-// Khởi tạo ảnh và cấp quyền chống lỗi đen màn hình (CORS)
-['player', 'armor', 'crate', 'zombie', 'floorGrass', 'wallBrick', 'tree'].forEach(k => {
-    Assets[k] = new Image();
-    Assets[k].crossOrigin = "Anonymous"; 
+['player', 'armor', 'zombie', 'floorGrass', 'wallBrick', 'tree'].forEach(k => {
+    Assets[k] = new Image(); Assets[k].crossOrigin = "Anonymous"; 
 });
-
 Assets.player.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Hitman%201/hitman1_gun.png";
 Assets.armor.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/SWAT/swat_outline.png"; 
 Assets.zombie.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Zombie%201/zombie1_hold.png";
@@ -16,8 +13,7 @@ Game.items = [];
 class GroundItem {
     constructor(x, y, type) { this.x = x; this.y = y; this.radius = 15; this.type = type; }
     draw(ctx) {
-        ctx.save(); ctx.translate(this.x, this.y);
-        ctx.shadowColor = (this.type==='key') ? '#f1c40f' : '#fff'; ctx.shadowBlur = 15;
+        ctx.save(); ctx.translate(this.x, this.y); ctx.shadowColor = (this.type==='key') ? '#f1c40f' : '#fff'; ctx.shadowBlur = 15;
         if (this.type === 'armor') { ctx.fillStyle = '#3498db'; ctx.fillRect(-12, -12, 24, 24); ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText("GIÁP", -12, 4); }
         else if (this.type === 'machine_gun') { ctx.fillStyle = '#e67e22'; ctx.fillRect(-12, -12, 24, 24); ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText("SÚNG", -12, 4); }
         else if (this.type === 'shotgun') { ctx.fillStyle = '#c0392b'; ctx.fillRect(-12, -12, 24, 24); ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText("SHOT", -12, 4); }
