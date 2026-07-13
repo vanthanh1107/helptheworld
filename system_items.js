@@ -1,27 +1,23 @@
-window.Assets = { 
-    player: new Image(), armor: new Image(), crate: new Image(),
-    zombie: new Image(), floorGrass: new Image(), wallBrick: new Image(), tree: new Image()
-};
+window.Assets = {};
+// Khởi tạo ảnh và cấp quyền chống lỗi đen màn hình (CORS)
+['player', 'armor', 'crate', 'zombie', 'floorGrass', 'wallBrick', 'tree'].forEach(k => {
+    Assets[k] = new Image();
+    Assets[k].crossOrigin = "Anonymous"; 
+});
 
-// Hình nhân vật & Đồ
 Assets.player.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Hitman%201/hitman1_gun.png";
 Assets.armor.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/SWAT/swat_outline.png"; 
-
-// HÌNH ẢNH MỚI CHO MAP VÀ ZOMBIE
 Assets.zombie.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Zombie%201/zombie1_hold.png";
-Assets.floorGrass.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_05.png"; // Nền cỏ
-Assets.wallBrick.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_09.png"; // Tường gạch rêu
-Assets.tree.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_42.png"; // Bụi cây lớn
+Assets.floorGrass.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_05.png"; 
+Assets.wallBrick.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_09.png"; 
+Assets.tree.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_42.png"; 
 
 Game.items = []; 
-
 class GroundItem {
     constructor(x, y, type) { this.x = x; this.y = y; this.radius = 15; this.type = type; }
     draw(ctx) {
         ctx.save(); ctx.translate(this.x, this.y);
-        // Vẽ viền phát sáng cho đồ vật dưới đất
         ctx.shadowColor = (this.type==='key') ? '#f1c40f' : '#fff'; ctx.shadowBlur = 15;
-        
         if (this.type === 'armor') { ctx.fillStyle = '#3498db'; ctx.fillRect(-12, -12, 24, 24); ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText("GIÁP", -12, 4); }
         else if (this.type === 'machine_gun') { ctx.fillStyle = '#e67e22'; ctx.fillRect(-12, -12, 24, 24); ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText("SÚNG", -12, 4); }
         else if (this.type === 'shotgun') { ctx.fillStyle = '#c0392b'; ctx.fillRect(-12, -12, 24, 24); ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText("SHOT", -12, 4); }
@@ -31,7 +27,6 @@ class GroundItem {
         ctx.restore();
     }
 }
-
 window.ItemSystem = {
     dropFromZombie: function(x, y) {
         let rand = Math.random();
