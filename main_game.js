@@ -1,9 +1,8 @@
 Game.trees = []; Game.explosionLight = null;
 
-// Hàm hỗ trợ Update UI trên Blogspot
 window.UpdateHUD = function(player) {
     let hpPercent = Math.max(0, (player.hp / 100)) * 100;
-    if (hpPercent > 100) hpPercent = 100; // Máu gốc 100
+    if (hpPercent > 100) hpPercent = 100; 
     document.getElementById('hp-bar').style.width = hpPercent + '%';
     document.getElementById('hp-text').innerText = player.hp + " / 100";
     
@@ -38,7 +37,7 @@ window.initZombieGame = function() {
     Game.canvas.addEventListener('mousedown', () => { Game.mouse.isDown = true; Game.mouse.justClicked = true; }); Game.canvas.addEventListener('mouseup', () => Game.mouse.isDown = false);
 
     NetworkManager.initLocalPlayer(); Game.localPlayer.x = 100; Game.localPlayer.y = 300;
-    UpdateHUD(Game.localPlayer); // Khởi tạo UI lần đầu
+    UpdateHUD(Game.localPlayer); 
 
     for(let i=0; i<30; i++) Game.trees.push({x: 300 + Math.random()*500, y: Math.random()*Game.mapHeight, radius: 30});
 
@@ -47,10 +46,8 @@ window.initZombieGame = function() {
         {x: 2600, y: 0, w: 64, h: 600, isGate: true} 
     ];
 
-    Game.items.push(new GroundItem(1125, 300, 'armor')); 
-    Game.items.push(new GroundItem(700, 100, 'machine_gun')); 
-    Game.items.push(new GroundItem(1500, 300, 'shotgun')); 
-    Game.items.push(new GroundItem(2000, 300, 'key')); 
+    Game.items.push(new GroundItem(1125, 300, 'armor')); Game.items.push(new GroundItem(700, 100, 'machine_gun')); 
+    Game.items.push(new GroundItem(1500, 300, 'shotgun')); Game.items.push(new GroundItem(2000, 300, 'key')); 
 
     for(let i = 0; i < 40; i++) {
         let zx = 600 + Math.random() * 1900; let zy = Math.random() * Game.mapHeight;
@@ -69,43 +66,40 @@ function gameLoop() {
     Game.camera.y = Math.max(0, Math.min(Game.localPlayer.y - Game.height/2, Game.mapHeight - Game.height));
     Game.worldMouse.x = Game.mouse.x + Game.camera.x; Game.worldMouse.y = Game.mouse.y + Game.camera.y;
 
-    // --- VẼ NỀN CỎ (TEXTURE MAP) ---
-    if (Assets.floorGrass.complete) {
-        Game.ctx.fillStyle = Game.ctx.createPattern(Assets.floorGrass, 'repeat');
+    // --- VẼ NỀN CỎ AN TOÀN ---
+    if (Assets.floorGrass.complete && Assets.floorGrass.naturalWidth > 0) {
+        let pat = Game.ctx.createPattern(Assets.floorGrass, 'repeat');
+        Game.ctx.fillStyle = pat ? pat : '#3a4a35';
     } else { Game.ctx.fillStyle = '#3a4a35'; }
-    Game.ctx.fillRect(0, 0, Game.width, Game.height); // Chỉ vẽ khu vực camera cho nhẹ
+    Game.ctx.fillRect(0, 0, Game.width, Game.height); 
 
     Game.ctx.save(); 
     FX.applyShake(Game.ctx); 
     Game.ctx.translate(-Game.camera.x, -Game.camera.y);
 
-    Game.ctx.fillStyle = 'rgba(46, 204, 113, 0.4)'; Game.ctx.fillRect(2800, 0, 200, Game.mapHeight); // Đích đến
+    Game.ctx.fillStyle = 'rgba(46, 204, 113, 0.4)'; Game.ctx.fillRect(2800, 0, 200, Game.mapHeight); 
 
-    // Vẽ vết máu
     Game.ctx.fillStyle = 'rgba(192, 57, 43, 0.6)';
     Game.bloodStains.forEach(s => { Game.ctx.beginPath(); Game.ctx.arc(s.x, s.y, s.radius, 0, Math.PI*2); Game.ctx.fill(); });
     
-    // Bật bóng đổ cho vật thể
     Game.ctx.shadowColor = 'rgba(0,0,0,0.7)'; Game.ctx.shadowBlur = 15; Game.ctx.shadowOffsetY = 10; Game.ctx.shadowOffsetX = 10;
 
-    // VẼ CÂY CỐI BẰNG ẢNH
     Game.trees.forEach(t => {
-        if(Assets.tree.complete) {
+        if(Assets.tree.complete && Assets.tree.naturalWidth > 0) {
             Game.ctx.drawImage(Assets.tree, t.x - t.radius, t.y - t.radius, t.radius*2, t.radius*2);
-        } else {
-            Game.ctx.fillStyle = '#27ae60'; Game.ctx.beginPath(); Game.ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); Game.ctx.fill();
-        }
+        } else { Game.ctx.fillStyle = '#27ae60'; Game.ctx.beginPath(); Game.ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); Game.ctx.fill(); }
     });
 
-    // VẼ NHÀ BẰNG TƯỜNG GẠCH
+    // VẼ TƯỜNG AN TOÀN
     for (let i = Game.walls.length - 1; i >= 0; i--) {
         let w = Game.walls[i];
         if (w.isGate && Game.localPlayer.hasKey && Physics.getDistance(Game.localPlayer.x, Game.localPlayer.y, w.x, Game.localPlayer.y) < 100) { Game.walls.splice(i, 1); FX.triggerShake(10); AudioSys.play('reload'); continue; }
         
         if (w.isGate) {
             Game.ctx.fillStyle = '#f39c12'; Game.ctx.fillRect(w.x, w.y, w.w, w.h);
-        } else if (Assets.wallBrick.complete) {
-            Game.ctx.fillStyle = Game.ctx.createPattern(Assets.wallBrick, 'repeat');
+        } else if (Assets.wallBrick.complete && Assets.wallBrick.naturalWidth > 0) {
+            let pat = Game.ctx.createPattern(Assets.wallBrick, 'repeat');
+            Game.ctx.fillStyle = pat ? pat : '#2c3e50';
             Game.ctx.fillRect(w.x, w.y, w.w, w.h);
         } else {
             Game.ctx.fillStyle = '#2c3e50'; Game.ctx.fillRect(w.x, w.y, w.w, w.h);
@@ -113,17 +107,16 @@ function gameLoop() {
         Game.ctx.strokeStyle = 'rgba(0,0,0,0.5)'; Game.ctx.lineWidth = 4; Game.ctx.strokeRect(w.x, w.y, w.w, w.h);
     }
 
-    if (Game.mouse.isDown && Game.localPlayer) { WeaponSystem.shoot(Game.localPlayer); UpdateHUD(Game.localPlayer); }
+    if (Game.mouse.isDown && Game.localPlayer) { WeaponSystem.shoot(Game.localPlayer); }
 
-    // Tắt bóng đổ vẽ đạn và hạt
     Game.ctx.shadowColor = 'transparent';
     for (let i = Game.items.length - 1; i >= 0; i--) {
         let item = Game.items[i]; item.draw(Game.ctx);
         if (Physics.checkCircleCollision({x: item.x, y: item.y, radius: item.radius}, Game.localPlayer)) {
-            Game.localPlayer.equipLoot(item.type); Game.items.splice(i, 1); UpdateHUD(Game.localPlayer);
+            Game.localPlayer.equipLoot(item.type); Game.items.splice(i, 1); 
         }
     }
-    for (let i = Game.grenades.length - 1; i >= 0; i--) { let g = Game.grenades[i]; g.update(); g.draw(Game.ctx); if (g.isDestroyed) { Game.grenades.splice(i, 1); UpdateHUD(Game.localPlayer); } }
+    for (let i = Game.grenades.length - 1; i >= 0; i--) { let g = Game.grenades[i]; g.update(); g.draw(Game.ctx); if (g.isDestroyed) { Game.grenades.splice(i, 1); } }
     for (let i = Game.particles.length - 1; i >= 0; i--) { let p = Game.particles[i]; p.update(); p.draw(Game.ctx); if (p.life <= 0) Game.particles.splice(i, 1); }
     for (let i = Game.bullets.length - 1; i >= 0; i--) {
         let b = Game.bullets[i]; b.update(); b.draw(Game.ctx);
@@ -132,14 +125,11 @@ function gameLoop() {
         if (b.isDestroyed) Game.bullets.splice(i, 1);
     }
     
-    Game.ctx.shadowColor = 'rgba(0,0,0,0.7)'; // Bật bóng đổ lại cho nhân vật
+    Game.ctx.shadowColor = 'rgba(0,0,0,0.7)'; 
     Game.players.forEach(p => {
         p.update(); Game.walls.forEach(w => Physics.resolveCircleRectCollision(p, w)); 
         Game.trees.forEach(t => Physics.resolveCircleRectCollision(p, {x: t.x-t.radius, y: t.y-t.radius, w: t.radius*2, h: t.radius*2})); 
         p.draw(Game.ctx); if (p.x > 2800) Game.isGameWon = true; 
-        
-        // Fix nhỏ: Update UI khi nạp đạn xong
-        if(p.isReloading && p.reloadTimer === 1) UpdateHUD(p);
     });
 
     for (let i = Game.zombies.length - 1; i >= 0; i--) {
@@ -164,9 +154,8 @@ function gameLoop() {
         }
     }
 
-    // --- LIGHTING ENGINE (ĐÈN PIN CỰC MƯỢT) ---
-    Game.ctx.shadowColor = 'transparent'; // Tránh bóng đổ cho vùng sáng
-    Game.ctx.fillStyle = 'rgba(5, 7, 12, 0.96)'; // Đêm sâu hơn
+    Game.ctx.shadowColor = 'transparent'; 
+    Game.ctx.fillStyle = 'rgba(5, 7, 12, 0.96)'; 
     Game.ctx.fillRect(Game.camera.x, Game.camera.y, Game.width, Game.height);
     Game.ctx.globalCompositeOperation = 'destination-out';
 
