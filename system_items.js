@@ -1,13 +1,15 @@
 window.Assets = {};
 ['player', 'armor', 'zombie', 'floorGrass', 'wallBrick', 'tree'].forEach(k => {
-    Assets[k] = new Image(); Assets[k].crossOrigin = "Anonymous"; 
+    Assets[k] = new Image();
 });
-Assets.player.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Hitman%201/hitman1_gun.png";
-Assets.armor.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/SWAT/swat_outline.png"; 
-Assets.zombie.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Zombie%201/zombie1_hold.png";
-Assets.floorGrass.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_05.png"; 
-Assets.wallBrick.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_09.png"; 
-Assets.tree.src = "https://raw.githubusercontent.com/kenneynl/Shooter-Down/master/PNG/Tiles/tile_42.png"; 
+
+// Đổi nhân vật sang áo màu Xanh Nước Biển cho dễ nhìn, tải qua CDN chống lỗi
+Assets.player.src = "https://cdn.jsdelivr.net/gh/kenneyNL/Topdown-Shooter/PNG/Man%20Blue/manBlue_gun.png";
+Assets.armor.src = "https://cdn.jsdelivr.net/gh/kenneyNL/Topdown-Shooter/PNG/Man%20Blue/manBlue_silencer.png"; 
+Assets.zombie.src = "https://cdn.jsdelivr.net/gh/kenneyNL/Topdown-Shooter/PNG/Zombie%201/zombie1_hold.png";
+Assets.floorGrass.src = "https://cdn.jsdelivr.net/gh/kenneyNL/Topdown-Shooter/PNG/Tiles/tile_05.png"; 
+Assets.wallBrick.src = "https://cdn.jsdelivr.net/gh/kenneyNL/Topdown-Shooter/PNG/Tiles/tile_09.png"; 
+Assets.tree.src = "https://cdn.jsdelivr.net/gh/kenneyNL/Topdown-Shooter/PNG/Tiles/tile_42.png"; 
 
 Game.items = []; 
 class GroundItem {
