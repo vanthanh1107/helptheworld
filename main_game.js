@@ -1,60 +1,4 @@
-Game.trees = []; Game.explosionLight = null;
-
-window.UpdateHUD = function(player) {
-    let hpPercent = Math.max(0, (player.hp / 100)) * 100; if (hpPercent > 100) hpPercent = 100; 
-    document.getElementById('hp-bar').style.width = hpPercent + '%';
-    document.getElementById('hp-text').innerText = player.hp + " / 100";
-    
-    let armorPercent = player.hasArmor ? 100 : 0;
-    document.getElementById('armor-bar').style.width = armorPercent + '%';
-    document.getElementById('armor-text').innerText = player.hasArmor ? "50 / 50" : "0 / 50";
-    
-    document.getElementById('weapon-name').innerText = WeaponSystem.stats[player.currentWeapon].name;
-    document.getElementById('ammo-text').innerText = `🔋 ${player.ammo} / ${WeaponSystem.stats[player.currentWeapon].clip}`;
-    document.getElementById('grenade-text').innerText = player.grenadeCount;
-    document.getElementById('score-display').innerText = "ĐIỂM: " + Game.score;
-    
-    if(player.hasKey) document.getElementById('key-box').classList.add('key-active');
-    document.getElementById('key-text').innerText = player.hasKey ? "1" : "0";
-}
-
-window.initZombieGame = function() {
-    Game.canvas = document.getElementById('battleCanvas'); Game.ctx = Game.canvas.getContext('2d');
-    
-    document.addEventListener('keydown', e => { 
-        if(e.key==='w'||e.key==='W') Game.keys.w=true; if(e.key==='a'||e.key==='A') Game.keys.a=true; 
-        if(e.key==='s'||e.key==='S') Game.keys.s=true; if(e.key==='d'||e.key==='D') Game.keys.d=true; 
-        if(e.code==='Space') Game.keys.space=true; if(e.key==='r'||e.key==='R') Game.keys.r=true; if(e.key==='g'||e.key==='G') Game.keys.g=true;
-    });
-    document.addEventListener('keyup', e => { 
-        if(e.key==='w'||e.key==='W') Game.keys.w=false; if(e.key==='a'||e.key==='A') Game.keys.a=false; 
-        if(e.key==='s'||e.key==='S') Game.keys.s=false; if(e.key==='d'||e.key==='D') Game.keys.d=false; 
-        if(e.code==='Space') Game.keys.space=false; if(e.key==='r'||e.key==='R') Game.keys.r=false; if(e.key==='g'||e.key==='G') Game.keys.g=false;
-    });
-    Game.canvas.addEventListener('mousemove', e => { let r = Game.canvas.getBoundingClientRect(); Game.mouse.x = e.clientX-r.left; Game.mouse.y = e.clientY-r.top; });
-    Game.canvas.addEventListener('mousedown', () => { Game.mouse.isDown = true; Game.mouse.justClicked = true; }); Game.canvas.addEventListener('mouseup', () => Game.mouse.isDown = false);
-
-    NetworkManager.initLocalPlayer(); Game.localPlayer.x = 100; Game.localPlayer.y = 300;
-    UpdateHUD(Game.localPlayer); 
-
-    for(let i=0; i<30; i++) Game.trees.push({x: 300 + Math.random()*500, y: Math.random()*Game.mapHeight, radius: 30});
-
-    Game.walls = [
-        {x: 1000, y: 100, w: 256, h: 384}, {x: 1800, y: 0, w: 384, h: 192}, {x: 1800, y: 400, w: 384, h: 256},
-        {x: 2600, y: 0, w: 64, h: 600, isGate: true} 
-    ];
-
-    Game.items.push(new GroundItem(1125, 300, 'armor')); Game.items.push(new GroundItem(700, 100, 'machine_gun')); 
-    Game.items.push(new GroundItem(1500, 300, 'shotgun')); Game.items.push(new GroundItem(2000, 300, 'key')); 
-
-    for(let i = 0; i < 40; i++) {
-        let zx = 600 + Math.random() * 1900; let zy = Math.random() * Game.mapHeight;
-        let type = 'normal'; let rand = Math.random();
-        if (rand < 0.2) type = 'runner'; else if (rand > 0.9) type = 'tanker';
-        Game.zombies.push(new Zombie(zx, zy, type));
-    }
-    gameLoop();
-};
+// ... (GIỮ NGUYÊN TẤT CẢ PHẦN TRÊN TRONG main_game.js CỦA BẠN CHO ĐẾN HÀM GAMELOOP) ...
 
 function gameLoop() {
     if (Game.isGameOver) { Game.ctx.fillStyle = 'rgba(0,0,0,0.8)'; Game.ctx.fillRect(0,0,Game.width,Game.height); Game.ctx.fillStyle = 'red'; Game.ctx.font = '50px Teko'; Game.ctx.textAlign='center'; Game.ctx.fillText("NHIỆM VỤ THẤT BẠI", Game.width/2, Game.height/2); return; }
@@ -137,15 +81,22 @@ function gameLoop() {
         }
     }
 
-    Game.ctx.shadowColor = 'transparent'; Game.ctx.fillStyle = 'rgba(5, 7, 12, 0.96)'; Game.ctx.fillRect(Game.camera.x, Game.camera.y, Game.width, Game.height); Game.ctx.globalCompositeOperation = 'destination-out';
-    let ambientLight = Game.ctx.createRadialGradient(Game.localPlayer.x, Game.localPlayer.y, 0, Game.localPlayer.x, Game.localPlayer.y, 140);
+    // --- SỬA LỖI QUÁ TỐI Ở ĐÂY ---
+    Game.ctx.shadowColor = 'transparent'; 
+    Game.ctx.fillStyle = 'rgba(5, 7, 12, 0.82)'; // GIẢM ĐỘ TỐI XUỐNG CÒN 82% CHO SÁNG HƠN
+    Game.ctx.fillRect(Game.camera.x, Game.camera.y, Game.width, Game.height);
+    Game.ctx.globalCompositeOperation = 'destination-out';
+
+    // TĂNG VÒNG SÁNG QUANH NGƯỜI LÊN 220px
+    let ambientLight = Game.ctx.createRadialGradient(Game.localPlayer.x, Game.localPlayer.y, 0, Game.localPlayer.x, Game.localPlayer.y, 220);
     ambientLight.addColorStop(0, 'rgba(255, 255, 255, 1)'); ambientLight.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    Game.ctx.fillStyle = ambientLight; Game.ctx.beginPath(); Game.ctx.arc(Game.localPlayer.x, Game.localPlayer.y, 140, 0, Math.PI*2); Game.ctx.fill();
+    Game.ctx.fillStyle = ambientLight; Game.ctx.beginPath(); Game.ctx.arc(Game.localPlayer.x, Game.localPlayer.y, 220, 0, Math.PI*2); Game.ctx.fill();
 
     let aimAngle = (Game.mobile && Game.mobile.isShooting) ? Game.mobile.aimAngle : Physics.getAngle(Game.localPlayer.x, Game.localPlayer.y, Game.worldMouse.x, Game.worldMouse.y);
     let beamLight = Game.ctx.createRadialGradient(Game.localPlayer.x, Game.localPlayer.y, 0, Game.localPlayer.x, Game.localPlayer.y, 500);
     beamLight.addColorStop(0, 'rgba(255, 255, 255, 0.8)'); beamLight.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    Game.ctx.fillStyle = beamLight; Game.ctx.beginPath(); Game.ctx.moveTo(Game.localPlayer.x, Game.localPlayer.y); Game.ctx.arc(Game.localPlayer.x, Game.localPlayer.y, 500, aimAngle - 0.5, aimAngle + 0.5); Game.ctx.fill();
+    Game.ctx.fillStyle = beamLight; 
+    Game.ctx.beginPath(); Game.ctx.moveTo(Game.localPlayer.x, Game.localPlayer.y); Game.ctx.arc(Game.localPlayer.x, Game.localPlayer.y, 500, aimAngle - 0.5, aimAngle + 0.5); Game.ctx.fill();
 
     if (Game.explosionLight && Game.explosionLight.life > 0) {
         let exLight = Game.ctx.createRadialGradient(Game.explosionLight.x, Game.explosionLight.y, 0, Game.explosionLight.x, Game.explosionLight.y, 450);
