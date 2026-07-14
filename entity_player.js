@@ -71,10 +71,17 @@ class Player {
         ctx.rotate(angle);
         if (this.isDashing) ctx.globalAlpha = 0.5;
         
+        // TẠO VIỀN PHÁT SÁNG CHO NHÂN VẬT ĐỂ DỄ NHÌN TRONG ĐÊM
+        ctx.shadowColor = '#00a8ff';
+        ctx.shadowBlur = 10;
+
         if (Assets.player.complete && Assets.player.naturalWidth > 0) {
             ctx.drawImage(Assets.player, -22.5, -22.5, 45, 45);
             if (this.hasArmor && Assets.armor.complete) ctx.drawImage(Assets.armor, -22.5, -22.5, 45, 45);
-        } else { ctx.fillStyle = this.hasArmor ? '#3498db' : '#00a8ff'; ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill(); }
+        } else { 
+            ctx.fillStyle = this.hasArmor ? '#3498db' : '#00a8ff'; 
+            ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fill(); 
+        }
         ctx.restore();
     }
 }
